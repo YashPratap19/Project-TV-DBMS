@@ -1,6 +1,7 @@
 #importing
 import mysql.connector as con
 from tkinter import *
+from functools import partial
 
 bgcol = 'white'
 fgcol='black'
@@ -14,6 +15,7 @@ p2= PhotoImage(file = 'path137.png')
 p2= p2.subsample(20,20)
 p3 = PhotoImage(file= 'path138.png')
 p4= PhotoImage(file='path140.png')
+p5= PhotoImage(file='path141.png')
 
 
 #connecting to mySQL
@@ -460,7 +462,41 @@ def cust():
         
     custo.mainloop
 #=================START WINDOW=================
+def login():
+    splash.withdraw()
+    tkWindow = Toplevel()
+    tkWindow.overrideredirect(True)
 
+    def validateLogin(username, password):
+        print("username entered :", username.get())
+        print("password entered :", password.get())
+        return
+    
+    tkWindow.geometry('500x400+120+50')
+    tkWindow.configure(bg='black')
+    tkWindow.title('Login Form')
+    imgg= Label(tkWindow, image = p5, bg='black')
+    imgg.pack(side = 'top')
+
+    usernameLabel = Label(tkWindow, text="User Name", font=("Arial", 15),bg='black', fg='white' )
+    usernameLabel.place(x=100, y=220)
+    username = StringVar()
+    usernameEntry = Entry(tkWindow, textvariable=username)
+    usernameEntry.place(x=250, y=227)
+
+    passwordLabel = Label(tkWindow,text="Password", font=("Arial", 15),bg='black', fg='white' )
+    passwordLabel.place(x=100, y=280)
+    password = StringVar()
+    passwordEntry = Entry(tkWindow, textvariable=password, show='*')
+    passwordEntry.place(x=250, y=287)
+
+    validateLogin = partial(validateLogin, username, password)
+    loginButton = Button(tkWindow, text="   Login   ", font=("Arial", 12) , command=lambda: [validateLogin, window()])
+    loginButton.place(x=200, y=330)
+
+    tkWindow.mainloop()
+
+    
 log = Label(splash, image = p1, bg='black')
 log.place(x=170, y=40)
 splash.configure(bg='black')
@@ -470,7 +506,7 @@ splash.geometry("400x200+120+50")
 splash.overrideredirect(True)
 
 def window():
-    splash.withdraw()
+    
     window=Toplevel()
     background_label = Label(window, image=p4, bg='white')
     background_label.pack(side = 'bottom')
@@ -500,5 +536,5 @@ def window():
     window.configure(bg='{}'.format(bgcol))
     window.mainloop()
 
-splash.after(2000,  window)
+splash.after(2000,  login)
 splash.mainloop()
