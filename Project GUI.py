@@ -1,7 +1,10 @@
 #importing
+import sys
 import mysql.connector as con
 from tkinter import *
+import  clipboard as cp
 from functools import partial
+from time import strftime
 
 bgcol = 'white'
 fgcol='black'
@@ -26,6 +29,9 @@ cursor = mycon.cursor()
 #=================BACK=================
 def back():
     window()
+
+def exiting():
+    print("Exit")
 
 #FUNCTION 1================================================================
 #=================SEARCH WINDOW=================
@@ -53,7 +59,7 @@ def database():
     sub_btn= Button(search,text = 'Submit', command = lambda: [submit(), lbl.destroy()])
     sub_btn.place(x=50, y=130)
 
-    back_btn = Button(search, text="Back", command = lambda: [back(), search.destroy()])
+    back_btn = Button(search, text="Back", command = lambda: [search.withdraw(), back()])
     back_btn.pack(side='bottom')
     
     search.iconphoto(False, p1)
@@ -208,7 +214,7 @@ def requests():
     ttlbl=Label(request, text= "List Of Active Requests", fg='red', font=("Arial", 18), bg='{}'.format(bgcol))
     ttlbl.place(x=150, y=10)
 
-    back_btn = Button(request, text = 'Back', command = lambda: [back(), request.destroy()])
+    back_btn = Button(request, text = 'Back', command = lambda: [request.withdraw(), back()])
     back_btn.pack(side='bottom')
     
     cursor.execute("Select * from Requests")
@@ -294,7 +300,7 @@ def requests():
             btn1= Button(select, text='Escalate to Customer Support', command= lambda: escalate(), bg='{}'.format(bgcol))
             btn1.place(x=5, y=160)
 
-            back_btn = Button(select, text="Back", command = lambda: [back(), select.destroy()], fg='{}'.format(fgcol))
+            back_btn = Button(select, text="Back", command = lambda: [select.destroy(), back()], fg='{}'.format(fgcol))
             back_btn.pack(side='bottom')
 
             def escalate():
@@ -362,7 +368,7 @@ def add():
     btn3 = Button(manual, text="Submit", fg='red', bg='{}'.format(bgcol), command=lambda: sub())
     btn3.place(x=100, y=200)
 
-    back_btn = Button(manual, text = 'Back', command = lambda: [back(), manual.destroy()])
+    back_btn = Button(manual, text = 'Back', command = lambda: [manual.withdraw(), back()])
     back_btn.pack(side='bottom')
     
     def sub():
@@ -442,7 +448,7 @@ def cust():
     btn3 = Button(custo, text="Submit", fg='red', bg='{}'.format(bgcol), font=("Calibri", 12), command=lambda: sub())
     btn3.place(x=150, y=300)
 
-    back_btn = Button(custo, text = 'Back', command = lambda: [back(), custo.destroy()])
+    back_btn = Button(custo, text = 'Back', command = lambda: [custo.withdraw(), back()])
     back_btn.pack(side='bottom')
     
     def sub():
@@ -461,17 +467,74 @@ def cust():
         mycon.commit()
         
     custo.mainloop
+
+#FUNCTION 5================================================================
+def mail():
+    mailgen = Tk()
+    mailgen.geometry("600x500")
+    mailgen.configure(bg='{}'.format(bgcol))
+    snowlbl = Label(mailgen, text = 'Enter Serial No.', font = ('calibre',10,'bold'), bg='{}'.format(bgcol))
+    snowlbl.place(x=20, y=100)
+
+    sno='1'
+    snowent = Entry (mailgen,textvariable = sno, font=('calibre',10,'normal'))
+    snowent.place(x = 200, y = 100)
+
+    sub_btn= Button(mailgen,text = 'Submit', command = lambda: [gen()])
+    sub_btn.place(x=50, y=130)
+
+    def gen():
+        sno = int(snowent.get())
+        cursor.execute("Select * from Customer where SN = %s", (sno,))
+        data = cursor
+        for row in data:
+            sn = row[0]
+            mod = row[1]
+            loc = row[2]
+            cont = row[3]
+            name = row[4]
+            date = row[5]
+            channel = row[6]
+            act = row[7]
+
+            mail1 = ('''Hey {},
+Hope your {} meets all your expectations and enhances your entertainment experience.
+Please rate delivery by our e-commerce partner {}, and let us know if you need help, or are facing any issues with your device.
+
+Your satisfaction is our top priority and we are always reachable via official  support channels
+
+Our service centres in {} will respond to any request regarding installation or repair services.
+
+Thank you, looking forward to your feedback!'''.format(name, mod, channel, loc))
+
+            sub_btn.destroy()
+            snowent.destroy()
+            msg = Message( mailgen, text = "{}".format(mail1), font=('calibre',11,'normal'))
+            msg.place(x=50, y=120)
+            snowlbl = Label(mailgen, text = 'Email Text Generated.', font = ('calibre',10,'bold'), bg='{}'.format(bgcol))
+            snowlbl.place(x=20, y=100)
+            copbut = Button(mailgen,text = ' Copy ', command = lambda: [cop()])
+            copbut.place(x=50, y=400)
+            def cop():
+                cp.copy(mail1)
+                copbut.destroy()
+                coptxt = Label(mailgen,text = ' Copied ', font = ('calibre',10,'bold'), bg='{}'.format(bgcol))
+                coptxt.place(x=50, y=400)
+    mailgen.mainloop()
+
+
 #=================START WINDOW=================
 def login():
     splash.withdraw()
     tkWindow = Toplevel()
-    tkWindow.overrideredirect(True)
-
+    
     def validateLogin(username, password):
+        tkWindow.withdraw()
         print("username entered :", username.get())
         print("password entered :", password.get())
+        window()
         return
-    
+        
     tkWindow.geometry('500x400+120+50')
     tkWindow.configure(bg='black')
     tkWindow.title('Login Form')
@@ -485,13 +548,13 @@ def login():
     usernameEntry.place(x=250, y=227)
 
     passwordLabel = Label(tkWindow,text="Password", font=("Arial", 15),bg='black', fg='white' )
-    passwordLabel.place(x=100, y=280)
+    passwordLabel.place(x=100, y=260)
     password = StringVar()
     passwordEntry = Entry(tkWindow, textvariable=password, show='*')
-    passwordEntry.place(x=250, y=287)
+    passwordEntry.place(x=250, y=267)
 
     validateLogin = partial(validateLogin, username, password)
-    loginButton = Button(tkWindow, text="   Login   ", font=("Arial", 12) , command=lambda: [validateLogin, window()])
+    loginButton = Button(tkWindow, text="   Login   ", font=("Arial", 12) , command=validateLogin)
     loginButton.place(x=200, y=330)
 
     tkWindow.mainloop()
@@ -506,7 +569,6 @@ splash.geometry("400x200+120+50")
 splash.overrideredirect(True)
 
 def window():
-    
     window=Toplevel()
     background_label = Label(window, image=p4, bg='white')
     background_label.pack(side = 'bottom')
@@ -514,25 +576,45 @@ def window():
     panel = Label(window, image = p3, bg='white')
     panel.pack(side = "bottom")
 
-    lbl=Label(window, text="OnePlus TV Database Management System", fg='red', bg='{}'.format(bgcol), font=("Arial", 18))
+    def time():
+        string = strftime('%H:%M:%S %p')
+        lbltm.config(text = string)
+        lbltm.after(1000, time)
+     
+    # Styling the label widget so that clock
+    # will look more attractive
+    lbltm = Label(window, font = ('calibri', 11), fg='black', bg='{}'.format(bgcol))
+     
+    # Placing clock at the centre
+    # of the tkinter window
+    lbltm.place(x=570, y=1)
+    time()
+    
+    lbl=Label(window, text="OnePlus TV Database Management System", fg='red', bg='{}'.format(bgcol), font=("Arial", 16))
     lbl.pack(side='top')
 
     btn=Button(window, text="Check User Data with Serial Number", fg='red', bg='{}'.format(bgcol), command= lambda: [window.withdraw()  , database()])
-    btn.place(x=60, y=100)
+    btn.place(x=90, y=100)
 
     btn2=Button(window, text="      Check Active Requests      ", fg='red', bg='{}'.format(bgcol), command= lambda: [window.withdraw()  ,requests()])
-    btn2.place(x=350, y=100)
+    btn2.place(x=380, y=100)
 
     btn3 = Button(window, text="      Manually Raise Request      ", fg='red', bg='{}'.format(bgcol), command=  lambda: [window.withdraw()  ,add()])
-    btn3.place(x=350, y=180)
+    btn3.place(x=380, y=180)
 
     btn4 = Button(window, text="      Manually Add User      ", fg='red', bg='{}'.format(bgcol), command=  lambda: [window.withdraw()  ,cust()])
-    btn4.place(x=60, y=180)
+    btn4.place(x=90, y=180)
 
+    btn5= Button(window, text="Generate Update/Feedback E-Mail", fg='red', bg='{}'.format(bgcol), command=  lambda: [window.withdraw()  ,mail()])
+    btn5.place(x=90, y=260)
+
+    exbut=Button(window, text="Exit", fg='red', bg='{}'.format(bgcol), command=lambda: [window.withdraw(), exiting()])
+    exbut.place(x=10, y=470)
+    
     window.title('TV Database Management System')
     window.iconphoto(False, p1)
 
-    window.geometry("600x500+10+20")
+    window.geometry("650x500+10+20")
     window.configure(bg='{}'.format(bgcol))
     window.mainloop()
 
