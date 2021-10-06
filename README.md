@@ -8,5 +8,5 @@ python(3.8 and above), mySQL server version 5.7.34, pip (21.2.1 and above), mysq
 3. Check active requests
 4. Update, Add, Delete, Escalate or Edit requests
 5. Generate EMail text for feedback or service requests
-
+6. Check service centre details and available technicians
 More features to be added...
